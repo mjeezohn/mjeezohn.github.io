@@ -5,7 +5,7 @@
  * To add a verified release, add an entry below with its real title, credits
  * and published URL. Placeholder concepts must retain status: "in-production".
  */
-const releases = [
+let releases = [
   {
     id: "001",
     title: "สิบปีแล้วเนาะ…",
@@ -57,12 +57,14 @@ function escapeHTML(value) {
 }
 function renderCard(item) {
   const published = item.status === "published";
-  const safeUrl = published && /^https:\/\/www\.youtube\.com\/shorts\/[\w-]+$/.test(item.url || "") ? item.url : null;
+  const thumbnail = item.thumbnail && /^https:\/\/i\.ytimg\.com\/vi\/[A-Za-z0-9_-]{11}\/hqdefault\.jpg$/.test(item.thumbnail) ? item.thumbnail : null;
+  const safeUrl = published && /^https:\/\/www\.youtube\.com\/(?:shorts\/[A-Za-z0-9_-]{11}|watch\?v=[A-Za-z0-9_-]{11})$/.test(item.url || "") ? item.url : null;
   const action = safeUrl
     ? `<a class="release-action" href="${escapeHTML(safeUrl)}" target="_blank" rel="noopener noreferrer">ดูวิดีโอ YouTube <span class="small-arrow" aria-hidden="true">↗</span></a>`
     : '<div class="release-action is-inactive"><span>ติดตามความคืบหน้า</span><span class="small-arrow" aria-hidden="true">✳</span></div>';
   return `<article class="release-card">
     <div class="release-art art-${escapeHTML(item.art)}" aria-hidden="true">
+      ${thumbnail ? `<img class="release-thumbnail" src="${escapeHTML(thumbnail)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ""}
       <span class="art-rings"></span><span class="art-number">MZ / ${escapeHTML(item.id)}</span>
       <span class="art-symbol">${escapeHTML(item.symbol)}</span>
       <span class="art-credit"><span>MJEEZOHN STUDIO</span><span>CREATIVE ARCHIVE</span></span>
@@ -76,8 +78,8 @@ function renderCard(item) {
 function renderLibrary() {
   const q = (searchInput?.value || "").normalize("NFKC").trim().toLocaleLowerCase("th");
   const items = releases.filter((item) => {
-    const matchesCategory = activeFilter === "all" || item.category === activeFilter;
-    const haystack = [item.title, item.genre, item.description, item.keywords].join(" ").normalize("NFKC").toLocaleLowerCase("th");
+    const matchesCategory = activeFilter === "all" || item.category === activeFilter || (activeFilter === "shorts" && item.kind === "shorts");
+    const haystack = [item.title, item.genre, item.description, item.keywords || ""].join(" ").normalize("NFKC").toLocaleLowerCase("th");
     return matchesCategory && haystack.includes(q);
   });
   if (grid) grid.innerHTML = items.map(renderCard).join("");
@@ -85,7 +87,7 @@ function renderLibrary() {
 }
 for (const button of filterButtons) {
   const count = document.querySelector(`[data-count="${button.dataset.filter}"]`);
-  if (count) count.textContent = String(releases.filter((r) => button.dataset.filter === "all" || r.category === button.dataset.filter).length).padStart(2, "0");
+  if (count) count.textContent = String(releases.filter((r) => button.dataset.filter === "all" || r.category === button.dataset.filter || (button.dataset.filter === "shorts" && r.kind === "shorts")).length).padStart(2, "0");
   button.addEventListener("click", () => {
     activeFilter = button.dataset.filter;
     for (const b of filterButtons) {
@@ -98,6 +100,43 @@ for (const button of filterButtons) {
 }
 searchInput?.addEventListener("input", renderLibrary);
 renderLibrary();
+
+async function loadYouTubeCatalogue() {
+  try {
+    const response = await fetch("./data/youtube.json", { cache: "no-cache" });
+    if (!response.ok) return;
+    const data = await response.json();
+    if (data?.schemaVersion !== 1 || !Array.isArray(data.videos) || !data.syncedAt) return;
+    const uploaded = data.videos.filter((v) => /^[A-Za-z0-9_-]{11}$/.test(v.id || "") && typeof v.title === "string");
+    const mapped = uploaded.map((v, index) => ({
+      id: v.id,
+      title: v.title,
+      description: v.description || "รับชมผลงานจากช่อง YouTube MjeeZohn Studio",
+      genre: v.kind === "shorts" ? "YouTube Shorts" : "Music Video",
+      category: "video",
+      kind: v.kind,
+      status: "published",
+      art: ["one", "two", "three"][index % 3],
+      symbol: v.kind === "shorts" ? "▶" : "♫",
+      keywords: v.title + " YouTube " + (v.kind || ""),
+      thumbnail: v.thumbnail,
+      url: v.url
+    }));
+    releases = mapped;
+    document.querySelector(".section-footnote").textContent = mapped.length
+      ? "รายการวิดีโอสาธารณะจาก YouTube @mjeezohn • อัปเดตล่าสุด " + new Date(data.syncedAt).toLocaleDateString("th-TH")
+      : "ยังไม่พบวิดีโอสาธารณะในช่อง YouTube @mjeezohn";
+    for (const button of filterButtons) {
+      const count = document.querySelector(`[data-count="${button.dataset.filter}"]`);
+      if (count) count.textContent = String(releases.filter((r) => button.dataset.filter === "all" || r.category === button.dataset.filter || (button.dataset.filter === "shorts" && r.kind === "shorts")).length).padStart(2, "0");
+    }
+    renderLibrary();
+  } catch (error) {
+    // Keep pre-sync sample catalogue if the file is not yet available.
+    console.warn("YouTube catalogue unavailable; showing starter items.");
+  }
+}
+loadYouTubeCatalogue();
 
 const menuButton = document.querySelector(".menu-toggle");
 const mobileNav = document.querySelector("#mobile-nav");
