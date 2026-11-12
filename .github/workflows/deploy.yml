@@ -21,14 +21,59 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout source
+      - name: Checkout public runtime
         uses: actions/checkout@v4
+
+      # Only approved browser-runtime assets may be served by GitHub Pages.
+      # Never upload the repository root, workflow sources, scripts or documentation.
+      - name: Assemble allowlisted Pages artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p site/assets site/data
+          cp index.html styles.css app.js .nojekyll site/
+          cp assets/favicon.svg site/assets/
+          cp data/youtube.json site/data/
+          python3 - <<'PY'
+          import json
+          import re
+          from pathlib import Path
+
+          root = Path("site")
+          approved = {
+              "index.html", "styles.css", "app.js", ".nojekyll",
+              "assets/favicon.svg", "data/youtube.json",
+          }
+          present = {
+              path.relative_to(root).as_posix()
+              for path in root.rglob("*") if path.is_file()
+          }
+          if present != approved:
+              raise SystemExit(f"Unexpected/missing public artifacts: {sorted(present ^ approved)}")
+
+          payload = json.loads((root / "data/youtube.json").read_text(encoding="utf-8"))
+          if payload.get("schemaVersion") != 1 or not isinstance(payload.get("videos"), list):
+              raise SystemExit("Invalid YouTube catalogue. Deployment blocked.")
+          forbidden = re.compile(
+              r"AIza[0-9A-Za-z_-]{35}|gh[pousr]_[A-Za-z0-9_]{20,}|"
+              r"github_pat_[A-Za-z0-9_]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----"
+          )
+          for name in approved:
+              if name == ".nojekyll":
+                  continue
+              if forbidden.search((root / name).read_text(encoding="utf-8")):
+                  raise SystemExit(f"Potential secret detected in release artifact: {name}")
+          print("Release gate OK: six approved public artifacts; no source scripts or docs.")
+          PY
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
-      - name: Upload static site
+
+      - name: Upload strictly public static assets
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: site
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
