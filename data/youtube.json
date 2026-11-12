@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "source": "YouTube Data API v3",
+  "channel": {
+    "handle": "@mjeezohn",
+    "url": "https://www.youtube.com/@mjeezohn"
+  },
+  "syncedAt": null,
+  "total": 0,
+  "videos": []
+}
