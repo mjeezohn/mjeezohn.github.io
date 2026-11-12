@@ -1,54 +1,20 @@
 "use strict";
 
-/**
- * MjeeZohn Studio catalogue
- * To add a verified release, add an entry below with its real title, credits
- * and published URL. Placeholder concepts must retain status: "in-production".
- */
-let releases = [
-  {
-    id: "001",
-    title: "สิบปีแล้วเนาะ…",
-    description: "แนวคิดบทเพลงเกี่ยวกับความทรงจำและการกลับมาพบกันอีกครั้ง",
-    genre: "Modern Isan Ballad",
-    category: "concept",
-    status: "in-production",
-    art: "one",
-    symbol: "๑๐",
-    keywords: "สิบปีแล้วเนาะ ความทรงจำ พบกันอีกครั้ง พิณ แคน",
-    url: null
-  },
-  {
-    id: "002",
-    title: "มนต์เสียงพิณในจังหวะใหม่",
-    description: "แนวทางสร้างสรรค์เสียงดนตรีอีสานผสม R&B และกีตาร์ร่วมสมัย",
-    genre: "Isan × R&B",
-    category: "concept",
-    status: "in-production",
-    art: "two",
-    symbol: "♫",
-    keywords: "พิณ แคน R&B อีสาน ดนตรีร่วมสมัย",
-    url: null
-  },
-  {
-    id: "003",
-    title: "Music Video Teaser",
-    description: "รับชมทีเซอร์มิวสิกวิดีโอผ่าน YouTube Shorts",
-    genre: "Visual Story",
-    category: "video",
-    status: "published",
-    art: "three",
-    symbol: "▶",
-    keywords: "ทีเซอร์ มิวสิกวิดีโอ วิดีโอ YouTube Shorts",
-    url: "https://www.youtube.com/shorts/U_DMV9IbOGU"
-  }
-];
-
+/** Landing preview: six most recently published regular videos from the channel. */
+const LIBRARY_LIMIT = 6;
+let releases = [];
 const grid = document.getElementById("release-grid");
 const emptyState = document.getElementById("library-empty");
-const searchInput = document.getElementById("library-search");
-const filterButtons = [...document.querySelectorAll("[data-filter]")];
-let activeFilter = "all";
+const libraryFootnote = document.getElementById("library-footnote");
+
+function showLibraryState(title, description) {
+  if (!emptyState) return;
+  const heading = emptyState.querySelector("h3");
+  const detail = emptyState.querySelector("p");
+  if (heading) heading.textContent = title;
+  if (detail) detail.textContent = description;
+  emptyState.hidden = false;
+}
 
 function escapeHTML(value) {
   return String(value).replace(/[&<>"']/g, (char) => ({
@@ -76,30 +42,10 @@ function renderCard(item) {
     </div></article>`;
 }
 function renderLibrary() {
-  const q = (searchInput?.value || "").normalize("NFKC").trim().toLocaleLowerCase("th");
-  const items = releases.filter((item) => {
-    const matchesCategory = activeFilter === "all" || item.category === activeFilter || (activeFilter === "shorts" && item.kind === "shorts");
-    const haystack = [item.title, item.genre, item.description, item.keywords || ""].join(" ").normalize("NFKC").toLocaleLowerCase("th");
-    return matchesCategory && haystack.includes(q);
-  });
-  if (grid) grid.innerHTML = items.map(renderCard).join("");
-  if (emptyState) emptyState.hidden = items.length !== 0;
+  const latest = releases.slice(0, LIBRARY_LIMIT);
+  if (grid) grid.innerHTML = latest.map(renderCard).join("");
+  if (emptyState) emptyState.hidden = latest.length > 0;
 }
-for (const button of filterButtons) {
-  const count = document.querySelector(`[data-count="${button.dataset.filter}"]`);
-  if (count) count.textContent = String(releases.filter((r) => button.dataset.filter === "all" || r.category === button.dataset.filter || (button.dataset.filter === "shorts" && r.kind === "shorts")).length).padStart(2, "0");
-  button.addEventListener("click", () => {
-    activeFilter = button.dataset.filter;
-    for (const b of filterButtons) {
-      const selected = b === button;
-      b.classList.toggle("is-selected", selected);
-      b.setAttribute("aria-pressed", String(selected));
-    }
-    renderLibrary();
-  });
-}
-searchInput?.addEventListener("input", renderLibrary);
-renderLibrary();
 
 // Use the actual public avatar provided by the channel's YouTube Data API snippet.
 // Never substitute an unrelated image; retain the existing mark if retrieval fails.
@@ -137,37 +83,45 @@ function applyChannelAvatar(avatarUrl) {
 async function loadYouTubeCatalogue() {
   try {
     const response = await fetch("./data/youtube.json", { cache: "no-cache" });
-    if (!response.ok) return;
+    if (!response.ok) throw new Error("Catalogue unavailable");
     const data = await response.json();
-    if (data?.schemaVersion !== 1 || !Array.isArray(data.videos) || !data.syncedAt) return;
+    if (data?.schemaVersion !== 1 || !Array.isArray(data.videos) || !data.syncedAt) throw new Error("Invalid catalogue");
     applyChannelAvatar(data.channel?.avatarUrl);
-    const uploaded = data.videos.filter((v) => /^[A-Za-z0-9_-]{11}$/.test(v.id || "") && typeof v.title === "string");
-    const mapped = uploaded.map((v, index) => ({
+    // Shorts are shown separately elsewhere; the landing preview is for songs.
+    // Sort explicitly by publication date to remain correct if the JSON order changes.
+    const uploaded = data.videos
+      .filter((video) => /^[A-Za-z0-9_-]{11}$/.test(video.id || "") &&
+        typeof video.title === "string" && video.kind !== "shorts")
+      .sort((left, right) => (Date.parse(right.publishedAt || "") || 0) -
+        (Date.parse(left.publishedAt || "") || 0));
+    const mapped = uploaded.slice(0, LIBRARY_LIMIT).map((v, index) => ({
       id: v.id,
       title: v.title,
       description: v.description || "รับชมผลงานจากช่อง YouTube MjeeZohn Studio",
-      genre: v.kind === "shorts" ? "YouTube Shorts" : "Music Video",
+      genre: "Music Video",
       category: "video",
       kind: v.kind,
       status: "published",
       art: ["one", "two", "three"][index % 3],
-      symbol: v.kind === "shorts" ? "▶" : "♫",
-      keywords: v.title + " YouTube " + (v.kind || ""),
+      symbol: "♫",
+      keywords: v.title + " YouTube",
       thumbnail: v.thumbnail,
       url: v.url
     }));
     releases = mapped;
-    document.querySelector(".section-footnote").textContent = mapped.length
-      ? "รายการวิดีโอสาธารณะจาก YouTube @mjeezohn • อัปเดตล่าสุด " + new Date(data.syncedAt).toLocaleDateString("th-TH")
-      : "ยังไม่พบวิดีโอสาธารณะในช่อง YouTube @mjeezohn";
-    for (const button of filterButtons) {
-      const count = document.querySelector(`[data-count="${button.dataset.filter}"]`);
-      if (count) count.textContent = String(releases.filter((r) => button.dataset.filter === "all" || r.category === button.dataset.filter || (button.dataset.filter === "shorts" && r.kind === "shorts")).length).padStart(2, "0");
+    if (libraryFootnote) {
+      libraryFootnote.textContent = "✳ แสดง " + mapped.length +
+        " เพลงล่าสุดจากทั้งหมด " + uploaded.length +
+        " รายการในช่อง YouTube • อัปเดต " +
+        new Date(data.syncedAt).toLocaleDateString("th-TH");
+    }
+    if (mapped.length === 0) {
+      showLibraryState("ยังไม่พบเพลงที่เผยแพร่", "กดดูเพลงอื่นๆ เพื่อเปิดช่อง YouTube");
     }
     renderLibrary();
   } catch (error) {
-    // Keep pre-sync sample catalogue if the file is not yet available.
-    console.warn("YouTube catalogue unavailable; showing starter items.");
+    showLibraryState("ไม่สามารถโหลดเพลงล่าสุดได้", "กดดูเพลงอื่นๆ เพื่อเปิดรายการบน YouTube โดยตรง");
+    console.warn("YouTube catalogue unavailable; open the channel for all music.");
   }
 }
 loadYouTubeCatalogue();
