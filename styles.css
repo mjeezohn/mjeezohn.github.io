@@ -69,3 +69,12 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--focus-ring);outline
 @media(max-width:760px){.library-summary{margin-top:-4px}.release-art{height:auto;aspect-ratio:16/10}.release-art.art-three:has(.release-thumbnail){aspect-ratio:16/10}.release-body h3{min-height:0}.hero-feature{margin-top:25px}.hero-feature-art{flex-basis:56px;width:56px;height:56px}}
 @media(max-width:520px){.release-grid{gap:18px}.release-body{padding:17px 18px 19px}.release-body h3{font-size:18px}.library-summary{padding:13px 14px}.library-summary-counts{gap:13px}.release-cover-play{width:54px;height:54px}.hero-feature-copy strong{font-size:12px}.video-info h3{overflow-wrap:anywhere}}
 @media(prefers-reduced-motion:reduce){.release-thumbnail,.hero-feature,.release-cover-play,.next-films{transition:none!important}.release-card:hover .release-thumbnail,.hero-feature:hover,.release-cover-link:hover .release-cover-play{transform:none!important}}
+
+/* Official channel profile link: preserve simple external navigation on all screens. */
+.studio-links{display:flex;align-items:center;flex-wrap:wrap;gap:14px 20px;margin-top:25px}
+.studio-links .about-link{margin-top:0}
+.studio-google-link{display:inline-flex;align-items:center;justify-content:center;gap:13px;min-height:46px;padding:10px 16px;border:1px solid #a57869;border-radius:9px;background:#e8a68e12;color:#f3c3b0;font-size:13px;font-weight:600;transition:background .2s,border-color .2s}
+.studio-google-link:hover{background:#e8a68e28;border-color:var(--peach)}
+.studio-google-link:focus-visible{outline:3px solid var(--focus-ring,#ffd3a8);outline-offset:4px}
+@media(max-width:520px){.studio-links{align-items:stretch;flex-direction:column;gap:14px}.studio-google-link{align-self:flex-start}}
+@media(prefers-reduced-motion:reduce){.studio-google-link{transition:none}}
