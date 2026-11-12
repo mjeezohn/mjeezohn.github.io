@@ -10,6 +10,8 @@ let showShortsCollection = false;
 const grid = document.getElementById("release-grid");
 const emptyState = document.getElementById("library-empty");
 const libraryFootnote = document.getElementById("library-footnote");
+const libraryMvCount = document.getElementById("library-mv-count");
+const libraryShortsCount = document.getElementById("library-shorts-count");
 
 function showLibraryState(title, description) {
   if (!emptyState) return;
@@ -43,23 +45,35 @@ function renderShortsCollectionCard() {
   </article>`;
 }
 
+function getVideoUrl(item) {
+  return item.status === "published" && /^https:\/\/www\.youtube\.com\/(?:shorts\/[A-Za-z0-9_-]{11}|watch\?v=[A-Za-z0-9_-]{11})$/.test(item.url || "") ? item.url : null;
+}
+
 function renderCard(item) {
   const published = item.status === "published";
   const thumbnail = item.thumbnail && /^https:\/\/i\.ytimg\.com\/vi\/[A-Za-z0-9_-]{11}\/hqdefault\.jpg$/.test(item.thumbnail) ? item.thumbnail : null;
-  const safeUrl = published && /^https:\/\/www\.youtube\.com\/(?:shorts\/[A-Za-z0-9_-]{11}|watch\?v=[A-Za-z0-9_-]{11})$/.test(item.url || "") ? item.url : null;
+  const safeUrl = getVideoUrl(item);
+  const shorts = item.kind === "shorts";
+  const publishedDate = item.publishedAt && !Number.isNaN(Date.parse(item.publishedAt))
+    ? new Date(item.publishedAt).toLocaleDateString("th-TH", {day:"numeric",month:"short",year:"numeric"}) : "";
+  const seconds = Number.isFinite(item.durationSeconds) ? item.durationSeconds : null;
+  const duration = seconds == null ? "" : `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+  const durationBadge = duration ? `<span class="release-duration">${escapeHTML(duration)}</span>` : "";
   const action = safeUrl
     ? `<a class="release-action" href="${escapeHTML(safeUrl)}" target="_blank" rel="noopener noreferrer">ดูวิดีโอ YouTube <span class="small-arrow" aria-hidden="true">↗</span></a>`
     : '<div class="release-action is-inactive"><span>ติดตามความคืบหน้า</span><span class="small-arrow" aria-hidden="true">✳</span></div>';
   return `<article class="release-card">
-    <div class="release-art art-${escapeHTML(item.art)}" aria-hidden="true">
-      ${thumbnail ? `<img class="release-thumbnail" src="${escapeHTML(thumbnail)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ""}
+    <div class="release-art art-${escapeHTML(item.art)}">
+      ${thumbnail ? `<img class="release-thumbnail" src="${escapeHTML(thumbnail)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">` : ""}
+      <span class="release-kind">${shorts ? "SHORTS" : "MUSIC VIDEO"}</span>
+      ${durationBadge}
+      ${safeUrl ? `<a class="release-cover-link" href="${escapeHTML(safeUrl)}" target="_blank" rel="noopener noreferrer" aria-label="เปิด ${escapeHTML(item.title)} บน YouTube ในแท็บใหม่"><span class="release-cover-play" aria-hidden="true">▶</span></a>` : ""}
       <span class="art-rings"></span><span class="art-number">MZ / ${escapeHTML(item.id)}</span>
       <span class="art-symbol">${escapeHTML(item.symbol)}</span>
       <span class="art-credit"><span>MJEEZOHN STUDIO</span><span>CREATIVE ARCHIVE</span></span>
     </div>
     <div class="release-body">
-      <div class="release-tags"><span class="release-tag">${escapeHTML(item.genre)}</span>
-      <span class="release-tag status">${published ? "มีวิดีโอให้ชม" : "ระหว่างพัฒนา"}</span></div>
+      <div class="release-tags"><span class="release-tag">${escapeHTML(item.genre)}</span>${publishedDate ? `<time class="release-date" datetime="${escapeHTML(item.publishedAt.slice(0,10))}">${escapeHTML(publishedDate)}</time>` : ""}</div>
       <h3>${escapeHTML(item.title)}</h3><p>${escapeHTML(item.description)}</p>${action}
     </div></article>`;
 }
@@ -103,6 +117,50 @@ function applyChannelAvatar(avatarUrl) {
   preview.src = url.href;
 }
 
+
+function updateLatestAndFeatured(uploaded) {
+  const latest = uploaded.find(v => v.kind !== "shorts") || uploaded[0];
+  if (!latest || !/^[A-Za-z0-9_-]{11}$/.test(latest.id)) return;
+  const href = latest.kind === "shorts" ? `https://www.youtube.com/shorts/${latest.id}`
+    : `https://www.youtube.com/watch?v=${latest.id}`;
+  const title = latest.title || "ผลงานล่าสุดจาก MjeeZohn Studio";
+  const hero = document.getElementById("hero-feature");
+  const heroTitle = document.getElementById("hero-feature-title");
+  const heroImage = document.getElementById("hero-feature-image");
+  if (hero && heroTitle && heroImage) {
+    hero.href = href;
+    heroTitle.textContent = title;
+    heroImage.src = `https://i.ytimg.com/vi/${latest.id}/mqdefault.jpg`;
+    heroImage.alt = "ภาพปก " + title;
+    hero.hidden = false;
+  }
+
+  const titleNode = document.getElementById("featured-video-title");
+  const descNode = document.getElementById("featured-video-description");
+  const kindNode = document.getElementById("featured-video-kind");
+  const formatNode = document.getElementById("featured-video-format");
+  const play = document.getElementById("featured-video-play");
+  const link = document.getElementById("featured-video-link");
+  const backdrop = document.getElementById("featured-video-image");
+  if (titleNode) titleNode.textContent = title;
+  if (descNode) descNode.textContent = latest.description ||
+    "รับชมเพลงและวิดีโอล่าสุดจาก mJeeZohn Music Official";
+  if (kindNode) kindNode.textContent = latest.kind === "shorts" ? "YOUTUBE SHORTS" : "MUSIC VIDEO";
+  if (formatNode) formatNode.textContent = latest.kind === "shorts" ? "SHORTS" : "MUSIC VIDEO";
+  if (play) {
+    play.dataset.youtubeId = latest.id;
+    play.setAttribute("aria-label", "เล่นวิดีโอ " + title);
+  }
+  if (link) link.href = href;
+  if (backdrop) {
+    backdrop.style.backgroundImage =
+      `linear-gradient(180deg,rgba(8,8,12,.12),rgba(8,8,12,.65)),url("https://i.ytimg.com/vi/${latest.id}/hqdefault.jpg")`;
+    backdrop.style.backgroundSize = "cover";
+    backdrop.style.backgroundPosition = "center";
+    backdrop.setAttribute("aria-label", "ภาพปกวิดีโอ " + title);
+  }
+}
+
 async function loadYouTubeCatalogue() {
   try {
     const response = await fetch("./data/youtube.json", { cache: "no-cache" });
@@ -132,13 +190,18 @@ async function loadYouTubeCatalogue() {
       symbol: v.kind === "shorts" ? "▶" : "♫",
       keywords: v.title + " YouTube",
       thumbnail: v.thumbnail,
+      publishedAt: v.publishedAt,
+      durationSeconds: v.durationSeconds,
       url: v.url
     }));
     // Maintain six tiles without misrepresenting a regular video as a Short.
     // With only one confirmed Short, slot six links to the real Shorts channel.
-    const showShortsCollection = regular.length === REGULAR_LIMIT &&
+    showShortsCollection = regular.length === REGULAR_LIMIT &&
       shorts.length === 1;
     releases = mapped;
+    if (libraryMvCount) libraryMvCount.textContent = String(regular.length);
+    if (libraryShortsCount) libraryShortsCount.textContent = String(shorts.length);
+    updateLatestAndFeatured(uploaded);
     if (libraryFootnote) {
       libraryFootnote.textContent = "✳ เพลงล่าสุด " + regular.length + " รายการ • Shorts " + shorts.length +
         " รายการ" + (showShortsCollection ? " • ดู Shorts เพิ่มเติมได้จากช่อง YouTube" : "") +
@@ -163,8 +226,20 @@ function setMenu(open) {
   menuButton.setAttribute("aria-expanded", String(open));
   menuButton.setAttribute("aria-label", open ? "ปิดเมนูนำทาง" : "เปิดเมนูนำทาง");
   mobileNav.hidden = !open;
+  if (open) mobileNav.querySelector("a")?.focus();
 }
 menuButton?.addEventListener("click", () => setMenu(menuButton.getAttribute("aria-expanded") !== "true"));
+// Keep background document navigation and focus predictable on mobile.
+mobileNav?.addEventListener("keydown", (event) => {
+  if (event.key !== "Tab" || mobileNav.hidden) return;
+  const focusable = [...mobileNav.querySelectorAll("a")];
+  if (!focusable.length) return;
+  if (event.shiftKey && document.activeElement === focusable[0]) {
+    event.preventDefault(); menuButton?.focus();
+  } else if (!event.shiftKey && document.activeElement === focusable[focusable.length - 1]) {
+    event.preventDefault(); menuButton?.focus();
+  }
+});
 mobileNav?.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => setMenu(false)));
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && menuButton?.getAttribute("aria-expanded") === "true") {
@@ -198,7 +273,7 @@ document.querySelectorAll("[data-youtube-id]").forEach((button) => {
     const iframe = document.createElement("iframe");
     iframe.className = "video-frame";
     iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?autoplay=1&rel=0`;
-    iframe.title = "MjeeZohn Studio — Music Video Teaser";
+    iframe.title = "MjeeZohn Studio — " + (document.getElementById("featured-video-title")?.textContent || "Music Video");
     iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
     iframe.referrerPolicy = "strict-origin-when-cross-origin";
     iframe.allowFullscreen = true;

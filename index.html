@@ -14,9 +14,13 @@
   <meta property="og:title" content="MjeeZohn Studio | Stories in Every Sound">
   <meta property="og:description" content="ทุกความรู้สึกมีทำนองของมัน — Modern Isan Music, Stories & Visuals">
   <meta property="og:url" content="https://mjeezohn.github.io/">
-  <meta name="twitter:card" content="summary">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:image" content="https://i.ytimg.com/vi/429lOFUv-PM/hqdefault.jpg">
+  <meta property="og:image:alt" content="ภาพปกวิดีโอเพลงจาก MjeeZohn Music Studio">
   <title>MjeeZohn Studio — Stories in Every Sound</title>
   <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+  <link rel="preconnect" href="https://i.ytimg.com">
+  <link rel="preconnect" href="https://yt3.ggpht.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -40,7 +44,7 @@
         <a class="nav-link" href="#videos">VIDEOS</a>
         <a class="nav-link" href="#studio">STUDIO</a>
       </nav>
-      <a class="button button-small header-cta" href="#videos">WATCH THE FILM <span aria-hidden="true">↗</span></a>
+      <a class="button button-small header-cta" href="#music">ฟังเพลงล่าสุด <span aria-hidden="true">↗</span></a>
       <button class="menu-toggle" type="button" aria-label="เปิดเมนูนำทาง" aria-expanded="false" aria-controls="mobile-nav">
         <span></span><span></span><span></span>
       </button>
@@ -61,9 +65,14 @@
           <h1 id="hero-title">ทุกความรู้สึก<br>มี<span class="accent-script">ทำนอง</span>ของมัน<span class="period">.</span></h1>
           <p class="hero-lead">เรื่องเล่าที่ไม่เคยจางหาย เสียงพิณแคนที่ยังอบอุ่น และดนตรีร่วมสมัยที่พาเราไปพบความทรงจำอีกครั้ง</p>
           <div class="hero-actions">
-            <a class="button button-primary" href="#music">สำรวจผลงานเพลง <span aria-hidden="true">↗</span></a>
-            <a class="text-link" href="#studio">รู้จักสตูดิโอ <span aria-hidden="true">↗</span></a>
+            <a class="button button-primary" href="#music">ฟังเพลงล่าสุด <span aria-hidden="true">↗</span></a>
+            <a class="text-link" href="#videos">ชมมิวสิกวิดีโอ <span aria-hidden="true">↗</span></a>
           </div>
+          <a class="hero-feature" id="hero-feature" href="https://www.youtube.com/@mjeezohn/videos" target="_blank" rel="noopener noreferrer" hidden aria-label="เปิดเพลงล่าสุดบน YouTube (แท็บใหม่)">
+            <span class="hero-feature-art"><img id="hero-feature-image" alt="" width="64" height="64" loading="lazy"></span>
+            <span class="hero-feature-copy"><small>JUST RELEASED / เพลงใหม่ล่าสุด</small><strong id="hero-feature-title">ดูผลงานล่าสุดของเรา</strong></span>
+            <span class="hero-feature-arrow" aria-hidden="true">↗</span>
+          </a>
           <div class="hero-note">
             <span class="audio-mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
             <span>ORIGINAL FEELING. NEW SOUND.</span>
@@ -98,9 +107,13 @@
       <div class="shell">
         <div class="section-heading">
           <div><p class="section-kicker"><span>01</span> THE SOUND COLLECTION</p><h2 id="music-heading">Music <em>Library.</em></h2></div>
-          <p class="section-intro">แสดงเพลงล่าสุด 4 รายการ ตามด้วย YouTube Shorts ในลำดับที่ 5–6 พร้อมลิงก์ไปชมผลงานทั้งหมดบน YouTube</p>
+          <p class="section-intro">ฟังเรื่องเล่าผ่านบทเพลงใหม่ล่าสุด พร้อมคลิป Shorts จากช่อง mJeeZohn Music Official</p>
         </div>
-        <div class="release-grid" id="release-grid" aria-live="polite"></div>
+        <div class="library-summary" aria-label="สรุปรายการผลงานล่าสุด">
+          <span class="summary-label"><span class="summary-dot" aria-hidden="true"></span> LATEST RELEASES</span>
+          <div class="library-summary-counts"><span><strong id="library-mv-count">4</strong> Music Videos</span><span><strong id="library-shorts-count">2</strong> Shorts</span></div>
+        </div>
+        <div class="release-grid" id="release-grid" aria-live="polite" aria-label="เพลงล่าสุด 4 รายการ และ Shorts ล่าสุด 2 รายการ"></div>
         <div class="library-empty" id="library-empty" role="status"><span aria-hidden="true">♫</span><h3>กำลังโหลดเพลงล่าสุด…</h3><p>กำลังดึงรายการผลงานจากช่อง YouTube</p></div>
         <div class="library-more"><a class="button button-primary library-more-button" href="https://www.youtube.com/@mjeezohn/videos" target="_blank" rel="noopener noreferrer" aria-label="ดูเพลงอื่นๆ ในช่อง YouTube MjeeZohn (เปิดแท็บใหม่)">ดูเพลงอื่นๆ <span aria-hidden="true">↗</span></a></div>
         <div class="section-footnote" id="library-footnote"><span class="tiny-star" aria-hidden="true">✳</span> แสดงเฉพาะเพลงล่าสุดจากช่อง YouTube @mjeezohn</div>
@@ -116,25 +129,25 @@
         <div class="film-layout">
           <div class="video-stage" id="video-stage">
             <div class="video-poster">
-              <div class="video-poster-image" role="img" aria-label="ภาพตัวอย่างวิดีโอ YouTube Shorts"></div>
+              <div class="video-poster-image" id="featured-video-image" role="img" aria-label="ภาพปกวิดีโอเด่น"></div>
               <div class="video-vignette"></div>
               <span class="poster-label">FEATURED VIDEO <span>01 / 01</span></span>
-              <button class="play-video" type="button" data-youtube-id="U_DMV9IbOGU" aria-label="เล่น MV Teaser จาก YouTube">
-                <span class="play-icon" aria-hidden="true">▶</span><span>PLAY TEASER</span>
+              <button class="play-video" id="featured-video-play" type="button" data-youtube-id="U_DMV9IbOGU" aria-label="เล่นวิดีโอเด่นจาก YouTube">
+                <span class="play-icon" aria-hidden="true">▶</span><span id="featured-video-play-label">เล่นวิดีโอ</span>
               </button>
               <span class="poster-bottom">THE STORY CONTINUES ↗</span>
             </div>
           </div>
           <div class="video-info">
-            <span class="pill-outline"><span class="live-dot"></span> YOUTUBE SHORTS</span>
-            <p class="info-number">FILM / 001</p>
-            <h3>บางความทรงจำ<br><em>ยังมีเสียงอยู่เสมอ.</em></h3>
-            <p>รับชมมิวสิกวิดีโอทีเซอร์ที่แชร์ไว้บน YouTube Shorts ถ่ายทอดบรรยากาศของบทเพลงและเรื่องเล่าจากสตูดิโอ</p>
-            <a class="arrow-link" href="https://www.youtube.com/shorts/U_DMV9IbOGU" target="_blank" rel="noopener noreferrer">เปิดดูบน YouTube <span aria-hidden="true">↗</span></a>
-            <div class="video-meta"><span>FORMAT <strong>SHORT FILM / TEASER</strong></span><span>PLATFORM <strong>YOUTUBE</strong></span></div>
+            <span class="pill-outline"><span class="live-dot"></span> <span id="featured-video-kind">FEATURED VIDEO</span></span>
+            <p class="info-number" id="featured-video-number">MUSIC / FEATURED</p>
+            <h3 id="featured-video-title">บางความทรงจำ<br><em>ยังมีเสียงอยู่เสมอ.</em></h3>
+            <p id="featured-video-description">ชมมิวสิกวิดีโอและเรื่องราวล่าสุดจาก MjeeZohn Studio</p>
+            <a class="arrow-link" id="featured-video-link" href="https://www.youtube.com/shorts/U_DMV9IbOGU" target="_blank" rel="noopener noreferrer">ดูบน YouTube <span aria-hidden="true">↗</span></a>
+            <div class="video-meta"><span>FORMAT <strong id="featured-video-format">MUSIC VIDEO</strong></span><span>PLATFORM <strong>YOUTUBE</strong></span></div>
           </div>
         </div>
-        <div class="next-films"><div><span>UP NEXT / IN THE MAKING</span><strong>Studio Sessions · Behind the Songs · New Visual Stories</strong></div><span class="arrow-circle" aria-hidden="true">↗</span></div>
+        <a class="next-films" href="https://www.youtube.com/@mjeezohn/videos" target="_blank" rel="noopener noreferrer" aria-label="ดูมิวสิกวิดีโอทั้งหมดบนช่อง YouTube (แท็บใหม่)"><div><span>MORE MUSIC VIDEOS</span><strong>ดูมิวสิกวิดีโอทั้งหมดบนช่อง YouTube</strong></div><span class="arrow-circle" aria-hidden="true">↗</span></a>
       </div>
     </section>
 
@@ -169,7 +182,7 @@
     <div class="shell footer-main">
       <div><a class="footer-logo" href="#home"><img class="footer-avatar" data-channel-avatar alt="" width="44" height="44" hidden>MjeeZohn<span>✳</span></a><p>Stories in every sound.<br>เสียงของความทรงจำในจังหวะใหม่</p></div>
       <div class="footer-links"><a href="#home">Home</a><a href="#music">Music</a><a href="#videos">Videos</a><a href="#studio">Studio</a></div>
-      <div class="footer-links"><a href="https://www.youtube.com/shorts/U_DMV9IbOGU" target="_blank" rel="noopener noreferrer">YouTube ↗</a><a href="https://github.com/mjeezohn/mjeezohn.github.io" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="#studio">About the Studio ↗</a></div>
+      <div class="footer-links"><a href="https://www.youtube.com/@mjeezohn" target="_blank" rel="noopener noreferrer">YouTube ↗</a><a href="https://github.com/mjeezohn/mjeezohn.github.io" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="#studio">About the Studio ↗</a></div>
     </div>
     <div class="shell footer-bottom"><span>© <span id="current-year">2026</span> MJEEZOHN STUDIO. ALL RIGHTS RESERVED.</span><span>DESIGNED FOR THE MUSIC.</span><a href="#top">BACK TO TOP ↑</a></div>
   </footer>

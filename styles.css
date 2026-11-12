@@ -14,3 +14,58 @@
 .library-more{display:flex;justify-content:center;margin-top:38px;margin-bottom:20px}
 .library-more-button{display:inline-flex;align-items:center;justify-content:center;gap:20px;min-height:50px;text-align:center}
 @media(max-width:520px){.library-more{margin-top:26px}.library-more-button{width:100%;max-width:360px}}
+
+
+/* UX refresh — clear music discovery, responsive cards, accessible interactions. */
+:root{--focus-ring:#ffd3a8;--control-radius:12px}
+body{line-height:1.65}
+a:focus-visible,button:focus-visible{outline:3px solid var(--focus-ring);outline-offset:4px;border-radius:3px}
+.section-heading{gap:clamp(20px,4vw,60px)}
+.section-intro{font-size:clamp(14px,1.2vw,16px);line-height:1.75;color:#c6bec5;max-width:425px}
+.hero-feature{display:flex;align-items:center;gap:13px;margin-top:30px;padding:11px 14px;background:#ffffff0a;border:1px solid #ffffff2c;border-radius:12px;max-width:530px;transition:background .2s,border-color .2s,transform .2s}
+.hero-feature:hover{background:#ffffff13;border-color:var(--peach);transform:translateY(-2px)}
+.hero-feature-art{display:block;flex:0 0 64px;width:64px;height:64px;overflow:hidden;border-radius:8px;background:#2a2327}
+.hero-feature-art img{display:block;width:100%;height:100%;object-fit:cover}
+.hero-feature-copy{min-width:0;display:flex;flex-direction:column;gap:2px;line-height:1.55}
+.hero-feature-copy small{font:700 10px var(--display);color:var(--peach);letter-spacing:1px}
+.hero-feature-copy strong{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13px;font-weight:600;line-height:1.55}
+.hero-feature-arrow{margin-left:auto;font-size:24px;color:var(--peach)}
+.library-summary{display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:-8px 0 24px;padding:14px 18px;border:1px solid #ffffff23;background:#ffffff06;border-radius:10px}
+.summary-label{display:inline-flex;align-items:center;gap:11px;color:#ead9d0;font:700 11px var(--display);letter-spacing:1.2px}
+.summary-dot{width:7px;height:7px;border-radius:50%;background:var(--peach);box-shadow:0 0 0 4px #e8a68e25}
+.library-summary-counts{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.library-summary-counts>span{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:#c7bcc2}
+.library-summary-counts strong{font:700 17px var(--display);color:#f8e6dc}
+.release-grid{gap:clamp(14px,1.65vw,24px);align-items:stretch}
+.release-card{display:flex;flex-direction:column;min-width:0;border-radius:12px;box-shadow:0 8px 36px #00000016;overflow:hidden}
+.release-card:focus-within{border-color:var(--peach)}
+.release-art{height:auto;aspect-ratio:16/10;isolation:isolate}
+.release-art.art-three:has(.release-thumbnail){aspect-ratio:16/10}
+.release-thumbnail{transition:transform .45s ease}
+.release-card:hover .release-thumbnail{transform:scale(1.045)}
+.release-kind{position:absolute;z-index:5;top:13px;left:13px;background:#101014e8;color:#ffe7dc;padding:5px 9px;border:1px solid #ffffff47;border-radius:6px;font:700 10px var(--display);letter-spacing:.65px;pointer-events:none}
+.release-duration{position:absolute;z-index:5;right:12px;bottom:12px;padding:4px 8px;border-radius:5px;background:#08080bd9;color:#fff;font:700 11px var(--display);pointer-events:none}
+.release-art .art-number{display:none}
+.release-art .art-credit{display:none}
+.release-cover-link{position:absolute;inset:0;z-index:4;display:grid;place-items:center;color:#fff}
+.release-cover-play{display:grid;place-items:center;width:58px;height:58px;border-radius:50%;background:#161219bb;border:1px solid #fff8;font-size:21px;padding-left:3px;backdrop-filter:blur(4px);transition:transform .2s,background .2s}
+.release-cover-link:hover .release-cover-play,.release-cover-link:focus-visible .release-cover-play{transform:scale(1.1);background:#e8a68ef0;color:#181319}
+.release-body{display:flex;flex-direction:column;flex:1;min-width:0;padding:20px 21px 22px}
+.release-tags{gap:8px;flex-wrap:wrap}
+.release-date{margin-left:auto;font-size:11px;color:#c4b9bd;white-space:nowrap}
+.release-body h3{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:clamp(16px,1.4vw,19px);line-height:1.5;margin:13px 0 9px;min-height:3em}
+.release-body p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13px;line-height:1.7;color:#c1b9c1;min-height:0;max-height:3.5em;margin:0 0 17px}
+.release-action{margin-top:auto;min-height:48px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.library-more{margin-top:32px}
+.library-more-button{min-height:52px;border-radius:8px}
+.video-poster-image{background-size:cover;background-position:center}
+.video-poster-image:before{opacity:.4;pointer-events:none}
+.video-info h3{overflow-wrap:anywhere;line-height:1.4}
+.video-info>p:not(.info-number){display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.next-films{color:inherit;cursor:pointer;transition:background .2s ease}
+.next-films:hover{background:#302930}
+.mobile-nav a:focus-visible{outline-offset:-4px}
+@media(max-width:1100px){.release-body{padding:18px}.release-tags{align-items:center}.release-date{margin-left:0}}
+@media(max-width:760px){.library-summary{margin-top:-4px}.release-art{height:auto;aspect-ratio:16/10}.release-art.art-three:has(.release-thumbnail){aspect-ratio:16/10}.release-body h3{min-height:0}.hero-feature{margin-top:25px}.hero-feature-art{flex-basis:56px;width:56px;height:56px}}
+@media(max-width:520px){.release-grid{gap:18px}.release-body{padding:17px 18px 19px}.release-body h3{font-size:18px}.library-summary{padding:13px 14px}.library-summary-counts{gap:13px}.release-cover-play{width:54px;height:54px}.hero-feature-copy strong{font-size:12px}.video-info h3{overflow-wrap:anywhere}}
+@media(prefers-reduced-motion:reduce){.release-thumbnail,.hero-feature,.release-cover-play,.next-films{transition:none!important}.release-card:hover .release-thumbnail,.hero-feature:hover,.release-cover-link:hover .release-cover-play{transform:none!important}}
