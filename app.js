@@ -101,12 +101,46 @@ for (const button of filterButtons) {
 searchInput?.addEventListener("input", renderLibrary);
 renderLibrary();
 
+// Use the actual public avatar provided by the channel's YouTube Data API snippet.
+// Never substitute an unrelated image; retain the existing mark if retrieval fails.
+function applyChannelAvatar(avatarUrl) {
+  if (typeof avatarUrl !== "string") return;
+  let url;
+  try {
+    url = new URL(avatarUrl);
+    const hostname = url.hostname.toLowerCase();
+    if (url.protocol !== "https:" || !(
+      hostname === "yt3.ggpht.com" ||
+      hostname === "yt3.googleusercontent.com" ||
+      hostname.endsWith(".googleusercontent.com") ||
+      hostname.endsWith(".ggpht.com")
+    )) return;
+  } catch {
+    return;
+  }
+
+  const preview = new Image();
+  preview.onload = () => {
+    document.querySelectorAll("[data-channel-avatar]").forEach((img) => {
+      img.src = url.href;
+      img.hidden = false;
+    });
+    const favicon = document.querySelector('link[rel="icon"]');
+    if (favicon) {
+      favicon.removeAttribute("type");
+      favicon.href = url.href;
+    }
+  };
+  preview.src = url.href;
+}
+
 async function loadYouTubeCatalogue() {
   try {
     const response = await fetch("./data/youtube.json", { cache: "no-cache" });
     if (!response.ok) return;
     const data = await response.json();
     if (data?.schemaVersion !== 1 || !Array.isArray(data.videos) || !data.syncedAt) return;
+    applyChannelAvatar(data.channel?.avatarUrl);
     const uploaded = data.videos.filter((v) => /^[A-Za-z0-9_-]{11}$/.test(v.id || "") && typeof v.title === "string");
     const mapped = uploaded.map((v, index) => ({
       id: v.id,
