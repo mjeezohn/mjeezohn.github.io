@@ -1,8 +1,12 @@
 "use strict";
 
-/** Landing preview: six most recently published regular videos from the channel. */
+/** Landing preview: four latest regular videos, then two latest confirmed Shorts. */
 const LIBRARY_LIMIT = 6;
+const REGULAR_LIMIT = 4;
+const SHORTS_LIMIT = 2;
+const CHANNEL_SHORTS_URL = "https://www.youtube.com/@mjeezohn/shorts";
 let releases = [];
+let showShortsCollection = false;
 const grid = document.getElementById("release-grid");
 const emptyState = document.getElementById("library-empty");
 const libraryFootnote = document.getElementById("library-footnote");
@@ -21,6 +25,24 @@ function escapeHTML(value) {
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
   })[char]);
 }
+function renderShortsCollectionCard() {
+  return `<article class="release-card release-card-shorts-more">
+    <div class="release-art art-three" aria-hidden="true">
+      <span class="art-rings"></span><span class="art-symbol">▶</span>
+      <span class="art-credit"><span>MJEEZOHN STUDIO</span><span>SHORTS COLLECTION</span></span>
+    </div>
+    <div class="release-body">
+      <div class="release-tags"><span class="release-tag">YouTube Shorts</span>
+        <span class="release-tag status">คลิปสั้น</span></div>
+      <h3>ดู Shorts เพิ่มเติม</h3>
+      <p>สำรวจคลิปสั้นจากช่อง mJeeZohn Music Official ผ่าน YouTube</p>
+      <a class="release-action" href="${CHANNEL_SHORTS_URL}" target="_blank" rel="noopener noreferrer">
+        เปิดช่อง Shorts <span class="small-arrow" aria-hidden="true">↗</span>
+      </a>
+    </div>
+  </article>`;
+}
+
 function renderCard(item) {
   const published = item.status === "published";
   const thumbnail = item.thumbnail && /^https:\/\/i\.ytimg\.com\/vi\/[A-Za-z0-9_-]{11}\/hqdefault\.jpg$/.test(item.thumbnail) ? item.thumbnail : null;
@@ -43,8 +65,9 @@ function renderCard(item) {
 }
 function renderLibrary() {
   const latest = releases.slice(0, LIBRARY_LIMIT);
-  if (grid) grid.innerHTML = latest.map(renderCard).join("");
-  if (emptyState) emptyState.hidden = latest.length > 0;
+  const collectionCard = showShortsCollection ? renderShortsCollectionCard() : "";
+  if (grid) grid.innerHTML = latest.map(renderCard).join("") + collectionCard;
+  if (emptyState) emptyState.hidden = latest.length > 0 || showShortsCollection;
 }
 
 // Use the actual public avatar provided by the channel's YouTube Data API snippet.
@@ -87,32 +110,39 @@ async function loadYouTubeCatalogue() {
     const data = await response.json();
     if (data?.schemaVersion !== 1 || !Array.isArray(data.videos) || !data.syncedAt) throw new Error("Invalid catalogue");
     applyChannelAvatar(data.channel?.avatarUrl);
-    // Shorts are shown separately elsewhere; the landing preview is for songs.
-    // Sort explicitly by publication date to remain correct if the JSON order changes.
+    // Pin regular uploads in slots 1–4 and confirmed Shorts in slots 5–6.
+    // The YouTube Data API does not expose an authoritative Shorts flag; only
+    // records verified as 'shorts' by the channel sync are treated as Shorts.
     const uploaded = data.videos
       .filter((video) => /^[A-Za-z0-9_-]{11}$/.test(video.id || "") &&
-        typeof video.title === "string" && video.kind !== "shorts")
+        typeof video.title === "string")
       .sort((left, right) => (Date.parse(right.publishedAt || "") || 0) -
         (Date.parse(left.publishedAt || "") || 0));
-    const mapped = uploaded.slice(0, LIBRARY_LIMIT).map((v, index) => ({
+    const regular = uploaded.filter((video) => video.kind !== "shorts").slice(0, REGULAR_LIMIT);
+    const shorts = uploaded.filter((video) => video.kind === "shorts").slice(0, SHORTS_LIMIT);
+    const mapped = [...regular, ...shorts].map((v, index) => ({
       id: v.id,
       title: v.title,
       description: v.description || "รับชมผลงานจากช่อง YouTube MjeeZohn Studio",
-      genre: "Music Video",
+      genre: v.kind === "shorts" ? "YouTube Shorts" : "Music Video",
       category: "video",
       kind: v.kind,
       status: "published",
       art: ["one", "two", "three"][index % 3],
-      symbol: "♫",
+      symbol: v.kind === "shorts" ? "▶" : "♫",
       keywords: v.title + " YouTube",
       thumbnail: v.thumbnail,
       url: v.url
     }));
+    // Maintain six tiles without misrepresenting a regular video as a Short.
+    // With only one confirmed Short, slot six links to the real Shorts channel.
+    const showShortsCollection = regular.length === REGULAR_LIMIT &&
+      shorts.length === 1;
     releases = mapped;
     if (libraryFootnote) {
-      libraryFootnote.textContent = "✳ แสดง " + mapped.length +
-        " เพลงล่าสุดจากทั้งหมด " + uploaded.length +
-        " รายการในช่อง YouTube • อัปเดต " +
+      libraryFootnote.textContent = "✳ เพลงล่าสุด " + regular.length + " รายการ • Shorts " + shorts.length +
+        " รายการ" + (showShortsCollection ? " • ดู Shorts เพิ่มเติมได้จากช่อง YouTube" : "") +
+        " • ผลงานสาธารณะทั้งหมด " + uploaded.length + " รายการ • อัปเดต " +
         new Date(data.syncedAt).toLocaleDateString("th-TH");
     }
     if (mapped.length === 0) {
