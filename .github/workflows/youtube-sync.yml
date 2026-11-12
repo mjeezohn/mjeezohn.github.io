@@ -1,0 +1,53 @@
+name: Sync MjeeZohn YouTube catalogue
+
+on:
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - scripts/sync_youtube.py
+      - .github/workflows/youtube-sync.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: youtube-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Check YouTube API secret
+        id: secret
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: |
+          if [ -z "$YOUTUBE_API_KEY" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::YOUTUBE_API_KEY missing. Add the secret to enable automatic channel sync."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Retrieve public channel uploads
+        if: steps.secret.outputs.configured == 'true'
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: python3 scripts/sync_youtube.py
+      - name: Commit updated public catalogue
+        if: steps.secret.outputs.configured == 'true'
+        run: |
+          if git diff --quiet -- data/youtube.json; then
+            echo "Catalogue unchanged."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/youtube.json
+          git commit -m "chore: sync public MjeeZohn YouTube uploads"
+          git push
