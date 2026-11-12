@@ -103,6 +103,13 @@ def fetch_public_uploads(api_key: str) -> dict:
     if len(channel_items) != 1:
         raise SyncError(f"Channel {HANDLE} not found or ambiguous")
     channel = channel_items[0]
+    snippet = channel.get("snippet") or {}
+    thumbnails = snippet.get("thumbnails") or {}
+    avatar_url = next(
+        (image.get("url", "") for size in ("high", "medium", "default")
+         if (image := thumbnails.get(size) or {}).get("url", "").startswith("https://")),
+        "",
+    )
     channel_id = channel.get("id", "")
     uploads_id = (channel.get("contentDetails") or {}).get("relatedPlaylists", {}).get("uploads", "")
     if not channel_id.startswith("UC") or not uploads_id:
@@ -154,6 +161,7 @@ def fetch_public_uploads(api_key: str) -> dict:
             "title": (channel.get("snippet") or {}).get("title", "MjeeZohn Studio"),
             "url": "https://www.youtube.com/@mjeezohn",
             "uploadsPlaylistId": uploads_id,
+            "avatarUrl": avatar_url,
         },
         "syncedAt": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "total": len(videos),
